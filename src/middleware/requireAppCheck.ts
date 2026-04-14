@@ -1,5 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { getAppCheck } from "firebase-admin/app-check";
+import {
+  getAppCheck,
+  VerifyAppCheckTokenResponse,
+} from "firebase-admin/app-check";
 import { getFirebaseAdminApp } from "../lib/firebaseAdmin";
 
 const APP_CHECK_HEADER = "X-Firebase-AppCheck";
@@ -40,6 +43,17 @@ function logAppCheckFailure(
   });
 }
 
+function logAppCheckSuccess(
+  req: Request,
+  verifiedToken: VerifyAppCheckTokenResponse
+): void {
+  console.info("Verified App Check token", {
+    method: req.method,
+    path: req.originalUrl,
+    appId: verifiedToken.appId,
+  });
+}
+
 export async function requireAppCheck(
   req: Request,
   res: Response,
@@ -48,6 +62,10 @@ export async function requireAppCheck(
   const token = req.header(APP_CHECK_HEADER);
 
   if (!token) {
+    console.warn("Missing App Check token", {
+      method: req.method,
+      path: req.originalUrl,
+    });
     res.status(401).json({
       error: "Missing App Check token",
       code: "missing_app_check_token",
@@ -57,6 +75,7 @@ export async function requireAppCheck(
 
   try {
     const verifiedToken = await appCheck.verifyToken(token);
+    logAppCheckSuccess(req, verifiedToken);
     res.locals.appCheck = verifiedToken;
     next();
   } catch (error) {
