@@ -5,7 +5,6 @@ import bookRoutes from "./routes/bookRoute";
 import commentThreadRoutes from "./routes/commentThreadRoute";
 import notFound from "./middleware/notFound";
 import errorHandler from "./middleware/errorHandler";
-import { requireAppCheck } from "./middleware/requireAppCheck";
 
 const app = express();
 
@@ -19,9 +18,9 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 app.use("/health", healthRoutes);
-app.use("/user", requireAppCheck, userRoutes);
-app.use("/books", requireAppCheck, bookRoutes);
-app.use("/comment-threads", requireAppCheck, commentThreadRoutes);
+app.use("/user", userRoutes);
+app.use("/books", bookRoutes);
+app.use("/comment-threads", commentThreadRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
